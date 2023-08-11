@@ -1,0 +1,121 @@
+import cv2
+import numpy as np
+from keras.models import load_model
+
+model = load_model('model_file_30epochs.h5')
+
+video = cv2.VideoCapture(0)
+if not video.isOpened():
+    print("Error: Could not open video capture.")
+    exit()
+
+faceDetect = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+labels_dict = {0: 'Angry', 1: 'Disgust', 2: 'Fear', 3: 'Happy', 4: 'Neutral', 5: 'Sad', 6: 'Surprise'}
+
+while True:
+    ret, frame = video.read()
+    if not ret:
+        print("Error: Could not read frame from video capture.")
+        break
+    
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    faces = faceDetect.detectMultiScale(gray, 1.3, 3)
+
+    for x, y, w, h in faces:
+        sub_face_img = gray[y:y+h, x:x+w]
+        resized = cv2.resize(sub_face_img, (48, 48))
+        normalized = resized / 255.0
+        reshaped = np.reshape(normalized, (1, 48, 48, 1))
+        result = model.predict(reshaped)
+        label = np.argmax(result, axis=1)[0]
+        emotion = labels_dict[label]  # Get the emotion label
+
+        # Draw rectangle around face and put emotion label
+        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 1)
+        cv2.putText(frame, emotion, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+
+    cv2.imshow('Frame', frame)
+    k = cv2.waitKey(1)
+    if k == ord('q'):
+        break
+
+# Release video capture and destroy windows
+video.release()
+cv2.destroyAllWindows()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# import cv2
+# import numpy as np
+# from keras.models import load_model
+
+# model=load_model('model_file_30epochs.h5')
+
+# video=cv2.VideoCapture(0)
+# if not video.isOpened():
+#     print("Error: Could not open video capture.")
+#     exit()
+
+# faceDetect = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+
+# labels_dict={0:'Angry',1:'Disgust',2:'Fear',3:'Happy',4:'Neutral',5:'Sad',6:'Surprise'}
+
+# #len(number_of_image),image_height,image_width,channel
+
+# # frame=cv2.imread('data2.jpeg')
+# while True:
+#     ret,frame=video.read()
+#     if not ret:
+#         print("Error: Could not read frame from video capture.")
+#         break
+#     gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+#     faces=faceDetect.detectMultiScale(gray,1.3,3)
+
+#     for x,y,w,h in faces:
+#         sub_face_img=gray[y:y+h,x:x+w]
+#         resized=cv2.resize(sub_face_img,(48,48))
+#         normalize=resized/255.0
+#         reshaped=np.reshape(normalize,(1,48,48,1))
+#         result=model.predict(reshaped)
+#         label=np.argmax(result,axis=1)[0]
+#         print(label)
+#         cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),1)
+#         cv2.rectangle(frame,(x,y),(x+w,y+h),(50,50,255),2)
+#         cv2.rectangle(frame,(x,y),(x+w,y+h),(50,50,255),3)
+        
+
+#     cv2.imshow('Frame',frame)    
+#     k= cv2.waitKey(1)
+#     if k==ord('q'):
+#         break
+
+#     video.release()
+#     cv2.destroyAllWindows()
